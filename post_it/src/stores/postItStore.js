@@ -6,7 +6,7 @@ const {
   postIts,
   isAnimActive,
   isFormAnimActive,
-  refreshFromApi,
+  refreshFromLocal,
   searchPostIt,
   getPostIt,
   getAllPostIts,
@@ -48,7 +48,7 @@ export const usePostItStore = defineStore('counter', ()=>{
     endingIndex,
 
     // actions
-    refreshFromApi,
+    refreshFromLocal,
     searchPostIt,
     getPostIt,
     getAllPostIts,
