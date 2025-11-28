@@ -59,7 +59,7 @@ async function refresh() {
 <!-- // %%%%%%%%%%%%%%%%%%%%%% VIEW %%%%%%%%%%%%%%%%%%% -->
 <template>
   <header :class="bgClass ?? 'bg-gray-200'"
-    class="py-10 flex justify-between gap-x-10 md:gap-x-6 px-3 md:px-10 rounded-br-[30%]">
+    class="py-10 flex lg:gap-x-40 md:gap-x-20 gap-x-10 px-3 md:px-10 rounded-br-[30%]">
 
 
     <RouterLink class="cursor-pointer flex items-center gap-x-1 md:gap-x-4 " to="/">
@@ -71,7 +71,7 @@ async function refresh() {
 
 
 
-    <div class="flex justify-between gap-x-2" v-show="hasSearchBar">
+    <div class="flex justify-between gap-x-2 w-full" v-show="hasSearchBar">
 
       <!-- // SEARCH BAR -->
       <input v-model="storePostIt.searchValue"
