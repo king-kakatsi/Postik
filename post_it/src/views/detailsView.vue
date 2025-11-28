@@ -5,6 +5,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { usePostItStore } from '@/stores/postItStore';
 import PostItHeader from '../components/PostItHeader.vue';
 import PostItFooter from '../components/PostItFooter.vue';
+import PostItForm from '../components/PostItForm.vue';
 import { getFullDate } from '@/helpers/DateHelper';
 import { onMounted, ref } from 'vue';
 import { refreshFromLocal } from '@/viewmodels/PostItViewModel';
@@ -15,6 +16,7 @@ const router = useRouter();
 
 let id = route.params.id;
 let postIt = ref(storePostIt.getPostIt(id));
+let isEditMode = ref(false);
 
 // Load data on page load/refresh
 onMounted(async () => {
@@ -25,12 +27,29 @@ onMounted(async () => {
   }
 });
 
-// Call form to edit post it
+// Toggle edit mode
 function editPostIt(id) {
-  router.push('/');
   const resultArray = storePostIt.isExists(id);
   storePostIt.postItPipeline = resultArray[0];
   storePostIt.formMode = 'edit';
+  isEditMode.value = true;
+}
+
+// Cancel edit mode
+function cancelEdit() {
+  storePostIt.postItPipeline = { title: '', content: '' };
+  storePostIt.formMode = 'button';
+  isEditMode.value = false;
+  // Refresh the post-it data
+  postIt.value = storePostIt.getPostIt(id);
+}
+
+// Handle successful edit
+function handleEditSuccess() {
+  isEditMode.value = false;
+  storePostIt.formMode = 'button';
+  // Refresh the post-it data
+  postIt.value = storePostIt.getPostIt(id);
 }
 
 // Delete post it
@@ -49,7 +68,7 @@ function deletePostIt(id) {
   <!-- Header -->
   <PostItHeader :hasSearchBar="false" />
 
-  <main class="bg-gradient-to-t from-gray-100 via-gray-200 to-gray-100 min-h-screen">
+  <main class="bg-gradient-to-b from-gray-100 via-gray-200 to-gray-100 min-h-screen">
     <div class="container mx-auto px-4 md:px-8 lg:px-16 py-12 md:py-20">
 
       <!-- Back Button - Top -->
@@ -63,87 +82,130 @@ function deletePostIt(id) {
       </div>
 
       <!-- Main Content Card -->
-      <div v-if="postIt"
-        class="bg-white rounded-3xl shadow-2xl overflow-hidden transform hover:scale-[1.01] transition-all duration-500">
+      <div v-if="postIt" class="bg-white rounded-3xl shadow-2xl overflow-hidden">
 
-        <!-- Header Section with Gradient -->
-        <div class="bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-600 px-8 md:px-12 py-10 md:py-14">
-          <h1 class="text-3xl md:text-5xl font-bold text-white break-words leading-tight drop-shadow-lg">
-            {{ postIt.title }}
-          </h1>
+        <!-- Edit Mode -->
+        <div v-if="isEditMode" class="p-8 md:p-12">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800">Edit Note</h2>
+            <button @click="cancelEdit"
+              class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-700 font-medium transition-colors duration-200">
+              Cancel
+            </button>
+          </div>
+
+          <!-- Inline Form -->
+          <div class="max-w-3xl">
+            <div class="flex flex-col mb-6">
+              <label for="title" class="text-gray-700 text-sm font-medium mb-2">Title</label>
+              <input v-model="storePostIt.postItPipeline.title"
+                class="w-full border-2 rounded-lg border-gray-300 px-4 py-3 text-base focus:outline-none focus:border-emerald-500 transition-colors duration-200"
+                type="text" id="title" placeholder="What's your post-it about?" required />
+              <p class="text-red-500 text-xs italic mt-1">Enter between 3 and 50 valid characters</p>
+            </div>
+
+            <div class="flex flex-col mb-6">
+              <label for="content" class="text-gray-700 text-sm font-medium mb-2">Content</label>
+              <textarea v-model="storePostIt.postItPipeline.content"
+                class="w-full border-2 rounded-lg border-gray-300 px-4 py-3 text-base focus:outline-none focus:border-emerald-500 transition-colors duration-200 min-h-[200px]"
+                id="content" placeholder="You can give more details about your post-it"></textarea>
+            </div>
+
+            <button @click="async () => {
+              const result = await storePostIt.processAndUpdatePostIt(
+                storePostIt.postItPipeline._id,
+                storePostIt.postItPipeline.title,
+                storePostIt.postItPipeline.content
+              );
+              if (result) handleEditSuccess();
+            }"
+              class="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300">
+              Save Changes
+            </button>
+          </div>
         </div>
 
-        <!-- Content Section -->
-        <div class="px-8 md:px-12 py-10 md:py-12 space-y-8">
-
-          <!-- Post-it Content -->
-          <div class="prose prose-lg max-w-none">
-            <div
-              class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-6 md:p-8 border-l-4 border-emerald-500 shadow-inner">
-              <p class="text-gray-700 text-base md:text-lg leading-relaxed break-words whitespace-pre-wrap">
-                {{ postIt.content && postIt.content.length > 0 ? postIt.content[0] : 'No content available' }}
-              </p>
-            </div>
+        <!-- View Mode -->
+        <div v-else>
+          <!-- Header Section with Gradient -->
+          <div class="bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-600 px-8 md:px-12 py-8 md:py-10">
+            <h1 class="text-2xl md:text-3xl lg:text-4xl font-bold text-white break-words leading-tight drop-shadow-lg">
+              {{ postIt.title }}
+            </h1>
           </div>
 
-          <!-- Metadata Section -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Content Section -->
+          <div class="px-8 md:px-12 py-10 md:py-12 space-y-8">
 
-            <!-- Updated Date -->
-            <div
-              class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 shadow-md border border-blue-100 hover:shadow-lg transition-shadow duration-300">
-              <div class="flex items-center gap-x-3 mb-2">
-                <div class="bg-blue-500 rounded-full p-2.5 shadow-md">
-                  <img alt="updated" class="w-6 h-6 brightness-0 invert" src="@/assets/icons/date.svg" />
-                </div>
-                <h3 class="text-sm font-semibold text-blue-900 uppercase tracking-wide">Last Updated</h3>
+            <!-- Post-it Content - EMPHASIZED -->
+            <div class="prose prose-lg max-w-none">
+              <div
+                class="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-8 md:p-10 border-l-4 border-emerald-500 shadow-md">
+                <p class="text-gray-800 text-lg md:text-xl leading-relaxed break-words whitespace-pre-wrap font-medium">
+                  {{ postIt.content && postIt.content.length > 0 ? postIt.content[0] : 'No content available' }}
+                </p>
               </div>
-              <p class="text-gray-700 text-lg font-medium ml-12">
-                {{ getFullDate(postIt.updatedAt) }}
-              </p>
             </div>
 
-            <!-- Created Date -->
-            <div
-              class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6 shadow-md border border-purple-100 hover:shadow-lg transition-shadow duration-300">
-              <div class="flex items-center gap-x-3 mb-2">
-                <div class="bg-purple-500 rounded-full p-2.5 shadow-md">
-                  <img alt="created" class="w-6 h-6 brightness-0 invert" src="@/assets/icons/date.svg" />
+            <!-- Metadata Section - REDUCED SIZE -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+
+              <!-- Updated Date -->
+              <div
+                class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100 hover:shadow-md transition-shadow duration-300">
+                <div class="flex items-center gap-x-2 mb-1">
+                  <div class="bg-blue-500 rounded-full p-1.5">
+                    <img alt="updated" class="w-4 h-4 brightness-0 invert" src="@/assets/icons/date.svg" />
+                  </div>
+                  <h3 class="text-xs font-semibold text-blue-900 uppercase tracking-wide">Last Updated</h3>
                 </div>
-                <h3 class="text-sm font-semibold text-purple-900 uppercase tracking-wide">Created On</h3>
+                <p class="text-gray-700 text-sm font-medium ml-8">
+                  {{ getFullDate(postIt.updatedAt) }}
+                </p>
               </div>
-              <p class="text-gray-700 text-lg font-medium ml-12">
-                {{ getFullDate(postIt.createdAt) }}
-              </p>
+
+              <!-- Created Date -->
+              <div
+                class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-100 hover:shadow-md transition-shadow duration-300">
+                <div class="flex items-center gap-x-2 mb-1">
+                  <div class="bg-purple-500 rounded-full p-1.5">
+                    <img alt="created" class="w-4 h-4 brightness-0 invert" src="@/assets/icons/date.svg" />
+                  </div>
+                  <h3 class="text-xs font-semibold text-purple-900 uppercase tracking-wide">Created On</h3>
+                </div>
+                <p class="text-gray-700 text-sm font-medium ml-8">
+                  {{ getFullDate(postIt.createdAt) }}
+                </p>
+              </div>
             </div>
-          </div>
 
-          <!-- Action Buttons -->
-          <div class="flex flex-wrap gap-4 pt-6 border-t border-gray-200">
+            <!-- Action Buttons -->
+            <div class="flex flex-wrap gap-4 pt-6 border-t border-gray-200">
 
-            <!-- Edit Button -->
-            <button @click="editPostIt(postIt._id)"
-              class="flex-1 min-w-[140px] group relative overflow-hidden bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300">
-              <div class="flex items-center justify-center gap-x-3 relative z-10">
-                <img alt="edit" class="w-5 h-5 group-hover:rotate-12 transition-transform duration-300"
-                  src="@/assets/icons/edit_note.svg" />
-                <span class="text-base">Edit Note</span>
-              </div>
-              <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300">
-              </div>
-            </button>
+              <!-- Edit Button -->
+              <button @click="editPostIt(postIt._id)"
+                class="flex-1 min-w-[140px] group relative overflow-hidden bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300">
+                <div class="flex items-center justify-center gap-x-3 relative z-10">
+                  <img alt="edit" class="w-5 h-5 group-hover:rotate-12 transition-transform duration-300"
+                    src="@/assets/icons/edit_note.svg" />
+                  <span class="text-base">Edit Note</span>
+                </div>
+                <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300">
+                </div>
+              </button>
 
-            <!-- Delete Button -->
-            <button @click="deletePostIt(postIt._id)"
-              class="flex-1 min-w-[140px] group relative overflow-hidden bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300">
-              <div class="flex items-center justify-center gap-x-3 relative z-10">
-                <img alt="delete" class="w-5 h-5 group-hover:scale-110 transition-transform duration-300"
-                  src="@/assets/icons/delete.svg" />
-                <span class="text-base">Delete Note</span>
-              </div>
-              <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300">
-              </div>
-            </button>
+              <!-- Delete Button -->
+              <button @click="deletePostIt(postIt._id)"
+                class="flex-1 min-w-[140px] group relative overflow-hidden bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300">
+                <div class="flex items-center justify-center gap-x-3 relative z-10">
+                  <img alt="delete" class="w-5 h-5 group-hover:scale-110 transition-transform duration-300"
+                    src="@/assets/icons/delete.svg" />
+                  <span class="text-base">Delete Note</span>
+                </div>
+                <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300">
+                </div>
+              </button>
+            </div>
           </div>
         </div>
       </div>
