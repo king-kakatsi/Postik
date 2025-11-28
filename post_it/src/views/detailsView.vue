@@ -14,17 +14,23 @@ const storePostIt = usePostItStore();
 const route = useRoute();
 const router = useRouter();
 
-let id = route.params.id;
-let postIt = ref(storePostIt.getPostIt(id));
-let isEditMode = ref(false);
-
 // Load data on page load/refresh
 onMounted(async () => {
-  // Always load data if postIt doesn't exist
-  if (!postIt.value) {
-    refreshFromLocal();
+
+  let id = route.params.id;
+  // Try to get it immediately
+  let found = storePostIt.getPostIt(id);
+
+  if (found) {
+    postIt.value = found;
+  } else {
+    // If not found, refresh from local storage (wait for it!)
+    await refreshFromLocal();
+    // Then try to get it again
     postIt.value = storePostIt.getPostIt(id);
   }
+
+  console.log("DEBUG", postIt.value, id);
 });
 
 // Watch for form mode changes to handle exit from edit mode
@@ -38,7 +44,7 @@ watch(() => storePostIt.formMode, (newMode) => {
 
 // Toggle edit mode
 function editPostIt(id) {
-  const resultArray = storePostIt.isExists(id);
+  const resultArray = storePostIt.exists(id);
   if (resultArray && resultArray.length > 0) {
     storePostIt.postItPipeline = { ...resultArray[0] }; // Create a copy to avoid direct mutation issues
     storePostIt.formMode = 'edit';
@@ -92,7 +98,8 @@ function deletePostIt(id) {
         <div v-else>
           <!-- Header Section with Gradient -->
           <div class="bg-gray-800 px-8 md:px-12 py-6 md:py-10">
-            <h1 class="text-xl md:text-2xl lg:text-3xl font-bold text-white break-words leading-tight drop-shadow-lg text-center">
+            <h1
+              class="text-xl md:text-2xl lg:text-3xl font-bold text-white break-words leading-tight drop-shadow-lg text-center">
               {{ postIt.title }}
             </h1>
           </div>
@@ -102,8 +109,7 @@ function deletePostIt(id) {
 
             <!-- Post-it Content - EMPHASIZED -->
             <div class="prose prose-lg max-w-none">
-              <div
-                class="bg-gray-100 rounded-2xl px-4 py-8 md:py-10">
+              <div class="bg-gray-100 rounded-2xl px-4 py-8 md:py-10">
                 <p class="text-gray-600 text-md md:text-lg leading-relaxed break-words whitespace-pre-wrap font-medium">
                   {{ postIt.content && postIt.content.length > 0 ? postIt.content[0] : 'No content available' }}
                 </p>
