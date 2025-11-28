@@ -71,13 +71,25 @@ export async function refreshFromLocal(){
 // %%%%%%%%%%%%%%% GET ALL POST-ITS %%%%%%%%%%%%%%%
 export async function getAllPostIts(){
 
-  const result = fetchFromLocalStorage('post_its');
-  if (result !== false && result.length > 0) {
-    postIts.value = result;
-  }
+  isAnimActive.value = true;
 
-  sortPostItsByDate();
-  return postIts;
+  try {
+    // Simulate loading delay for better UX (show animation)
+    await new Promise(resolve => setTimeout(resolve, 800));
+
+    const result = fetchFromLocalStorage('post_its');
+    if (result !== false && result.length > 0) {
+      postIts.value = result;
+    }
+
+    sortPostItsByDate();
+    isAnimActive.value = false;
+    return postIts;
+  } catch (ex) {
+    console.log(ex);
+    isAnimActive.value = false;
+    return postIts;
+  }
 }
 // %%%%%%%%%%%%%%% END - GET ALL POST-ITS %%%%%%%%%%%%%%%
 
