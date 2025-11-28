@@ -14,7 +14,7 @@ const {
   processAndUpdatePostIt,
   processAndDeletePostIt,
   DeleteAllPostIts,
-  isExists
+  exists
 } = usePostIt();
 
 
@@ -56,6 +56,6 @@ export const usePostItStore = defineStore('counter', ()=>{
     processAndUpdatePostIt,
     processAndDeletePostIt,
     DeleteAllPostIts,
-    isExists
+    exists
   }
 })

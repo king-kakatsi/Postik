@@ -99,7 +99,7 @@ export async function getAllPostIts(){
 // %%%%%%%%%%%%%%% GET A POST-IT %%%%%%%%%%%%%%%
 export function getPostIt(id){
 
-  const resultArray = isExists(id);
+  const resultArray = exists(id);
   if (resultArray !== false) return resultArray[0];
   return false;
 }
@@ -148,7 +148,7 @@ export async function processAndUpdatePostIt(id, title, content = null){
   try{
 
     if (validateText(title)){
-      const resultArray = isExists(id);
+      const resultArray = exists(id);
 
       if (resultArray !== false){
         let thisPostIt = resultArray[0];
@@ -192,7 +192,7 @@ export async function processAndDeletePostIt(id){
 
   try{
 
-    const resultArray = isExists(id);
+    const resultArray = exists(id);
     if (resultArray !== false){
 
       let foundAt = resultArray[1];
@@ -255,7 +255,7 @@ export async function DeleteAllPostIts(){
 
 
 // %%%%%%%%%%%%%% CHECK IF POST-IT EXISTS %%%%%%%%%%%%%%%
-export function isExists(id){
+export function exists(id){
 
   if (id != null && postIts.value != null && postIts.value.length > 0){
     let foundAt = -1;
@@ -353,7 +353,7 @@ export function usePostIt() {
     processAndUpdatePostIt,
     processAndDeletePostIt,
     DeleteAllPostIts,
-    isExists
+    exists
   }
 }
 

@@ -92,7 +92,7 @@ function deletePostIt(id) {
 
       <!-- Loading Animation -->
       <div v-if="isLoading" class="flex justify-center items-center py-20">
-        <Vue3Lottie :animationData="loadingJSON" :height="200" :width="200" :loop="true" :speed="2" :autoPlay="true" />
+        <Vue3Lottie :animationData="loadingJSON" :height="200" :width="200" :loop="true" :speed="2" :autoPlay="true" class="rounded-full"/>
       </div>
 
       <!-- Main Content Card -->
