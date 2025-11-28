@@ -14,6 +14,9 @@ const storePostIt = usePostItStore();
 const route = useRoute();
 const router = useRouter();
 
+let postIt = ref(null);
+let isEditMode = ref(false);
+
 // Load data on page load/refresh
 onMounted(async () => {
 
