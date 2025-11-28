@@ -9,6 +9,8 @@ import PostItForm from '../components/PostItForm.vue';
 import { getFullDate } from '@/helpers/DateHelper';
 import { onMounted, ref, watch } from 'vue';
 import { refreshFromLocal } from '@/viewmodels/PostItViewModel';
+import { Vue3Lottie } from 'vue3-lottie';
+import loadingJSON from '@/assets/json/loading_infinite_symbol.json';
 
 const storePostIt = usePostItStore();
 const route = useRoute();
@@ -16,6 +18,7 @@ const router = useRouter();
 
 let postIt = ref(null);
 let isEditMode = ref(false);
+let isLoading = ref(true);
 
 // Load data on page load/refresh
 onMounted(async () => {
@@ -26,11 +29,14 @@ onMounted(async () => {
 
   if (found) {
     postIt.value = found;
+    isLoading.value = false;
   } else {
     // If not found, refresh from local storage (wait for it!)
+    isLoading.value = true;
     await refreshFromLocal();
     // Then try to get it again
     postIt.value = storePostIt.getPostIt(id);
+    isLoading.value = false;
   }
 
   console.log("DEBUG", postIt.value, id);
@@ -84,8 +90,13 @@ function deletePostIt(id) {
         </RouterLink>
       </div>
 
+      <!-- Loading Animation -->
+      <div v-if="isLoading" class="flex justify-center items-center py-20">
+        <Vue3Lottie :animationData="loadingJSON" :height="200" :width="200" :loop="true" :speed="2" :autoPlay="true" />
+      </div>
+
       <!-- Main Content Card -->
-      <div v-if="postIt" class="bg-white rounded-3xl shadow-2xl overflow-hidden">
+      <div v-else-if="postIt" class="bg-white rounded-3xl shadow-2xl overflow-hidden">
 
         <!-- Edit Mode -->
         <div v-if="isEditMode" class="p-4 md:p-8">
