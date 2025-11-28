@@ -5,10 +5,11 @@
 // %%%%%%%%%%%% CREATE POST IT %%%%%%%%%%%%%
 export function createPostIt(title, content = ''){
     const date = new Date();
+    // Generate unique client-side ID using timestamp + random string
+    const uniqueId = Date.now().toString() + '-' + Math.random().toString(36).substr(2, 9);
 
     return {
-      _id: '',
-      // title,
+      _id: uniqueId,
       title,
       content: [content],
       createdAt: date,

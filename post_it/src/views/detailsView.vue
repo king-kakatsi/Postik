@@ -49,74 +49,120 @@ function deletePostIt(id) {
   <!-- Header -->
   <PostItHeader :hasSearchBar="false" />
 
-  <main class="bg-gray-200">
-    <div
-      class="bg-gray-100 min-h-screen flex flex-col gap-x-10 px-4 md:px-10 pt-10 md:pt-20 pb-0 md:pb-10 rounded-l-[10%]">
+  <main class="bg-gradient-to-t from-gray-100 via-gray-200 to-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 md:px-8 lg:px-16 py-12 md:py-20">
 
-      <!-- Details -->
-      <div class="flex flex-col gap-y-5 md:gap-y-10">
+      <!-- Back Button - Top -->
+      <div class="mb-8">
+        <RouterLink to="/"
+          class="inline-flex items-center gap-x-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-xl shadow-md hover:shadow-xl hover:scale-105 transition-all duration-300 text-gray-700 font-medium group">
+          <img alt="go back" class="w-5 h-5 rotate-180 group-hover:-translate-x-1 transition-transform duration-300"
+            src="@/assets/icons/right_arrow.svg" />
+          <span>Back to all notes</span>
+        </RouterLink>
+      </div>
 
-        <div class="block">
-          <h2 class="text-emerald-800 break-all inline text-2xl md:text-3xl font-bold border-b-4">
-            {{ postIt ? postIt.title : '-- No title --' }}
-          </h2>
+      <!-- Main Content Card -->
+      <div v-if="postIt"
+        class="bg-white rounded-3xl shadow-2xl overflow-hidden transform hover:scale-[1.01] transition-all duration-500">
+
+        <!-- Header Section with Gradient -->
+        <div class="bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-600 px-8 md:px-12 py-10 md:py-14">
+          <h1 class="text-3xl md:text-5xl font-bold text-white break-words leading-tight drop-shadow-lg">
+            {{ postIt.title }}
+          </h1>
         </div>
 
-        <p class="text-sm break-all md:text-lg">
-          {{ postIt && postIt.content && postIt.content.length > 0 ? postIt.content[0] : '-- No content --' }}
-        </p>
+        <!-- Content Section -->
+        <div class="px-8 md:px-12 py-10 md:py-12 space-y-8">
 
-        <div class="flex md:items-center flex-col md:flex-row">
-          <div class="flex items-center">
-            <img alt="modified at" class="ml-[-8px] md:ml-0 w-[35px] md:w-[45px] h-[35px] md:h-[45px] p-2 self-center"
-              src="@/assets/icons/date.svg" />
-            <b class="text-emerald-800 md:mr-3 text-sm md:text-lg">Updated on:</b>
+          <!-- Post-it Content -->
+          <div class="prose prose-lg max-w-none">
+            <div
+              class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-6 md:p-8 border-l-4 border-emerald-500 shadow-inner">
+              <p class="text-gray-700 text-base md:text-lg leading-relaxed break-words whitespace-pre-wrap">
+                {{ postIt.content && postIt.content.length > 0 ? postIt.content[0] : 'No content available' }}
+              </p>
+            </div>
           </div>
-          <p class="text-sm md:text-lg">
-            {{ postIt ? getFullDate(postIt.updatedAt) : '-- No date --' }}
-          </p>
-        </div>
 
-        <div class="flex md:items-center flex-col md:flex-row">
-          <div class="flex items-center">
-            <img alt="modified at" class="ml-[-8px] md:ml-0 w-[35px] md:w-[45px] h-[35px] md:h-[45px] p-2 self-center"
-              src="@/assets/icons/date.svg" />
-            <b class="text-emerald-800 md:mr-3 text-sm md:text-lg">Created on:</b>
+          <!-- Metadata Section -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <!-- Updated Date -->
+            <div
+              class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 shadow-md border border-blue-100 hover:shadow-lg transition-shadow duration-300">
+              <div class="flex items-center gap-x-3 mb-2">
+                <div class="bg-blue-500 rounded-full p-2.5 shadow-md">
+                  <img alt="updated" class="w-6 h-6 brightness-0 invert" src="@/assets/icons/date.svg" />
+                </div>
+                <h3 class="text-sm font-semibold text-blue-900 uppercase tracking-wide">Last Updated</h3>
+              </div>
+              <p class="text-gray-700 text-lg font-medium ml-12">
+                {{ getFullDate(postIt.updatedAt) }}
+              </p>
+            </div>
+
+            <!-- Created Date -->
+            <div
+              class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6 shadow-md border border-purple-100 hover:shadow-lg transition-shadow duration-300">
+              <div class="flex items-center gap-x-3 mb-2">
+                <div class="bg-purple-500 rounded-full p-2.5 shadow-md">
+                  <img alt="created" class="w-6 h-6 brightness-0 invert" src="@/assets/icons/date.svg" />
+                </div>
+                <h3 class="text-sm font-semibold text-purple-900 uppercase tracking-wide">Created On</h3>
+              </div>
+              <p class="text-gray-700 text-lg font-medium ml-12">
+                {{ getFullDate(postIt.createdAt) }}
+              </p>
+            </div>
           </div>
-          <p class="text-sm md:text-lg">
-            {{ postIt ? getFullDate(postIt.createdAt) : '-- No date --' }}
-          </p>
+
+          <!-- Action Buttons -->
+          <div class="flex flex-wrap gap-4 pt-6 border-t border-gray-200">
+
+            <!-- Edit Button -->
+            <button @click="editPostIt(postIt._id)"
+              class="flex-1 min-w-[140px] group relative overflow-hidden bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300">
+              <div class="flex items-center justify-center gap-x-3 relative z-10">
+                <img alt="edit" class="w-5 h-5 group-hover:rotate-12 transition-transform duration-300"
+                  src="@/assets/icons/edit_note.svg" />
+                <span class="text-base">Edit Note</span>
+              </div>
+              <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300">
+              </div>
+            </button>
+
+            <!-- Delete Button -->
+            <button @click="deletePostIt(postIt._id)"
+              class="flex-1 min-w-[140px] group relative overflow-hidden bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300">
+              <div class="flex items-center justify-center gap-x-3 relative z-10">
+                <img alt="delete" class="w-5 h-5 group-hover:scale-110 transition-transform duration-300"
+                  src="@/assets/icons/delete.svg" />
+                <span class="text-base">Delete Note</span>
+              </div>
+              <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300">
+              </div>
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- Buttons -->
-      <div class="flex justify-start gap-x-3 mt-10" v-if="postIt">
-        <button
-          class="cursor-pointer px-5 py-2 font-bold w-auto text-white rounded-lg bg-emerald-600 text-xs flex items-center gap-x-2 hover:scale-[105%] duration-300"
-          @click="editPostIt(postIt._id)">
-          <img alt="edit" class="w-[20px] h-[20px] self-center" src="@/assets/icons/edit_note.svg" />
-          <span class="text-white">Edit</span>
-        </button>
-
-        <button
-          class="cursor-pointer px-5 py-2 font-bold w-auto text-white rounded-lg bg-pink-700 text-xs flex items-center gap-x-2 hover:scale-[105%] duration-300"
-          @click="deletePostIt(postIt._id)">
-          <img alt="delete" class="w-[20px] h-[20px] self-center" src="@/assets/icons/delete.svg" />
-          Delete
-        </button>
-      </div>
-
-
-      <!-- Go back -->
-       <div class="flex">
-
-         <RouterLink class="cursor-pointer mt-30 px-3 bg-gray-200 py-2 w-auto rounded-lg text-sm flex items-center gap-x-2 text-xs md:text-sm hover:scale-[105%] duration-300" to="/" >
-
-           <img alt="view more" class="w-[20px] h-[20px] self-center rotate-180" src="@/assets/icons/right_arrow.svg" />
-
-           go back
+      <!-- No Post-it Found -->
+      <div v-else class="bg-white rounded-3xl shadow-2xl p-12 text-center">
+        <div class="max-w-md mx-auto">
+          <div class="bg-gray-100 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
+            <span class="text-4xl">📝</span>
+          </div>
+          <h2 class="text-2xl font-bold text-gray-800 mb-3">Note Not Found</h2>
+          <p class="text-gray-600 mb-6">The post-it you're looking for doesn't exist or has been deleted.</p>
+          <RouterLink to="/"
+            class="inline-flex items-center gap-x-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+            <img alt="go back" class="w-5 h-5 rotate-180 brightness-0 invert" src="@/assets/icons/right_arrow.svg" />
+            <span>Back to Notes</span>
           </RouterLink>
         </div>
+      </div>
     </div>
   </main>
 

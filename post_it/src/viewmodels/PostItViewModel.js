@@ -1,15 +1,10 @@
 
 
-// import { validateText } from '@/helpers/validationHelper';
 import { getFullDate } from '@/helpers/DateHelper';
 import { validateText } from '@/helpers/validationHelper';
 import { createPostIt, updatePostIt } from '@/models/PostIt';
-import { fetchAllFromApi, storeWithApi, updateWithApi, deleteWithApi } from '@/services/AxiosService';
 import { fetchFromLocalStorage, saveInLocalStorage } from '@/services/LocalStorageService';
 import { ref } from 'vue'
-
-
-let hasFirstFetch = false;
 
 
 
@@ -38,19 +33,18 @@ export function searchPostIt(value){
 
 
 
-// %%%%%%%%%%%%%% REFRESH %%%%%%%%%%%%%%%%
-export async function refreshFromApi(){
+// %%%%%%%%%%%%%% REFRESH FROM LOCALSTORAGE %%%%%%%%%%%%%%%%
+export async function refreshFromLocal(){
 
   isAnimActive.value = true;
 
   try{
 
-    const result = await fetchAllFromApi();
+    const result = fetchFromLocalStorage('post_its');
     if (result !== false && result.length > 0){
 
       console.log(result);
       postIts.value = result;
-      saveInLocalStorage('post_its', postIts.value);
     }
 
     isAnimActive.value = false;
@@ -63,47 +57,20 @@ export async function refreshFromApi(){
     return false;
   }
 }
-// %%%%%%%%%%%%%% END - REFRESH %%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%% END - REFRESH FROM LOCALSTORAGE %%%%%%%%%%%%%%%%
 
 
 
-// %%%%%%%%%%%%%%% REFRSH FROM LOCAL STORAGE %%%%%%%%%%%%%%%
-export async function refreshFromLocal(){
 
-
-  let result;
-  try{
-
-    result = fetchFromLocalStorage('post_its');
-    if (result !== false && result.length > 0){
-      postIts.value = result;
-    }
-    return result;
-
-  } catch (ex){
-
-    console.log(ex);
-    return false;
-  }
-}
-// %%%%%%%%%%%%%%% END - REFRSH FROM LOCAL STORAGE %%%%%%%%%%%%%%%
 
 
 
 // %%%%%%%%%%%%%%% GET ALL POST-ITS %%%%%%%%%%%%%%%
 export async function getAllPostIts(){
 
-
-  let result;
-  if (hasFirstFetch) {
-
-    result = fetchFromLocalStorage('post_its');
-    if (result !== false) postIts.value = result
-  } else {
-
-    result = await refreshFromApi();
-    if (result === false) return result;
-    hasFirstFetch = true;
+  const result = fetchFromLocalStorage('post_its');
+  if (result !== false && result.length > 0) {
+    postIts.value = result;
   }
 
   sortPostItsByDate();
@@ -135,24 +102,14 @@ export async function processAndCreatePostIt(title, content){
     if (validateText(title)){
 
       const newPostIt = createPostIt(title, content);
+      console.log('Created new post-it:', newPostIt);
 
-      const result = await storeWithApi(newPostIt);
-
-      if (result !== false){
-
-        newPostIt._id = result.note_id;
-        console.log(newPostIt);
-
-        postIts.value.push(newPostIt);
-        sortPostItsByDate();
-        saveInLocalStorage('post_its', postIts.value);
-
-        isFormAnimActive.value = false;
-        return true;
-      }
+      postIts.value.push(newPostIt);
+      sortPostItsByDate();
+      saveInLocalStorage('post_its', postIts.value);
 
       isFormAnimActive.value = false;
-      return false;
+      return true;
     }
 
     isFormAnimActive.value = false;
@@ -184,16 +141,12 @@ export async function processAndUpdatePostIt(id, title, content = null){
 
         thisPostIt = updatePostIt(title, content, thisPostIt);
 
-        const result = await updateWithApi(thisPostIt._id, thisPostIt);
-        if (result !== false){
+        postIts.value[foundAt] = thisPostIt;
+        sortPostItsByDate();
+        saveInLocalStorage('post_its', postIts.value);
 
-          postIts.value[foundAt] = thisPostIt;
-          sortPostItsByDate();
-          saveInLocalStorage('post_its', postIts.value);
-
-          isFormAnimActive.value = false;
-          return true;
-        }
+        isFormAnimActive.value = false;
+        return true;
 
       } else {
         console.log("This item doesn't exists");
@@ -227,27 +180,23 @@ export async function processAndDeletePostIt(id){
     const resultArray = isExists(id);
     if (resultArray !== false){
 
-    let foundAt = resultArray[1];
-    console.log(postIts.value);
-    const result = await deleteWithApi(id);
-
-    if(result !== false){
+      let foundAt = resultArray[1];
+      console.log('Deleting post-it:', postIts.value[foundAt]);
+      
       postIts.value.splice(foundAt, 1);
-
       saveInLocalStorage('post_its', postIts.value);
 
       isAnimActive.value = false;
       return true;
+
+    } else {
+
+      isAnimActive.value = false;
+      console.log("This item doesn't exists");
     }
 
-  } else {
-
     isAnimActive.value = false;
-    console.log("This item doesn't exists");
-  }
-
-  isAnimActive.value = false;
-  return false;
+    return false;
 
   } catch(ex){
 
@@ -381,8 +330,7 @@ export function usePostIt() {
     isAnimActive,
     isFormAnimActive,
 
-
-    refreshFromApi,
+    refreshFromLocal,
     searchPostIt,
     getPostIt,
     getAllPostIts,
