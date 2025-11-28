@@ -40,6 +40,9 @@ export async function refreshFromLocal(){
 
   try{
 
+    // Simulate loading delay for better UX (show animation)
+    await new Promise(resolve => setTimeout(resolve, 800));
+
     const result = fetchFromLocalStorage('post_its');
     if (result !== false && result.length > 0){
 
