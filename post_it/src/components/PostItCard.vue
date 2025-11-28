@@ -81,7 +81,8 @@ const colors = [
     <h3 class="font-bold text-xl break-all md:text-2xl text-gray-700">{{ postIt.title.slice(0, 50) + ((
       postIt.title.length > 50) ? '...' : '') }}</h3>
 
-    <p class="text-gray-600 text-sm break-all">{{ postIt !== false && postIt.content && postIt.content.length > 0 ?
+    <p class="text-gray-600 text-sm break-all whitespace-pre-wrap">{{ postIt !== false && postIt.content &&
+      postIt.content.length > 0 ?
       (postIt.content[0].slice(0, 100) + ((postIt.content[0] && postIt.content[0].length > 100) ? '...' : '')) : ''}}
     </p>
 
